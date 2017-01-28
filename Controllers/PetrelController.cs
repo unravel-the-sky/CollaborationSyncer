@@ -31,6 +31,12 @@ namespace Observer.Controllers
             syncer_.Detach(listener);
         }
 
+        public class ListOfOperations
+        {
+            public ConcurrentDictionary<string, List<JObject>> listOfOperations_ = new ConcurrentDictionary<string, List<JObject>>();
+        }
+
+
         /// <summary>
         /// The 'Syncer' class
         /// </summary>
@@ -42,6 +48,16 @@ namespace Observer.Controllers
             private List<IListener> listeners_ = new List<IListener>();
 
             private ConcurrentDictionary<string, List<JObject>> listOfOperations_ = new ConcurrentDictionary<string, List<JObject>>();
+
+
+            //below is EXPERIMENTAL
+
+            private ListOfOperations listOfOperationsExperimental_ = new ListOfOperations();
+            private ConcurrentDictionary<int, ListOfOperations> indexedListOfOperations_ = new ConcurrentDictionary<int, ListOfOperations>();
+            private static int index = 0;
+
+            //above is EXPERIMENTAL
+
 
             private ConcurrentDictionary<string, List<JObject>> listOfEverything_ = new ConcurrentDictionary<string, List<JObject>>();
 
@@ -66,12 +82,26 @@ namespace Observer.Controllers
                 return listOfOperations_[id];
             }
 
+            public List<JObject> GetElementsFromListWithIndex(string id, int index)
+            {
+                if (!listOfOperations_.ContainsKey(id))
+                    listOfOperations_[id] = new List<JObject>();
+
+                return listOfOperations_[id];
+            }
+
             public void AddElementsToEverythingList(string id, JObject operation)
             {
                 if (!listOfEverything_.ContainsKey(id))
                     listOfEverything_[id] = new List<JObject>();
 
                 listOfEverything_[id].Add(operation);
+
+                if (!listOfOperationsExperimental_.listOfOperations_.ContainsKey(id))
+                    listOfOperationsExperimental_.listOfOperations_[id] = new List<JObject>();
+
+                listOfOperationsExperimental_.listOfOperations_[id].Add(operation);
+                indexedListOfOperations_[index] = listOfOperationsExperimental_;
             }
 
             public List<JObject> GetElementsFromEverthingList(string id)
