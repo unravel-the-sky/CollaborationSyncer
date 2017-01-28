@@ -19,13 +19,6 @@ namespace Observer.Controllers
         public PetrelController()
         {
             // Create the Syncer and add some dummy listernes for now
-            // syncer_.Attach(new Listener("Petrel1"));
-            // syncer_.Attach(new Listener("Petrel2"));
-
-            // JObject tempObject = new JObject();
-            // tempObject.Add("operationId", "AddOperation");
-
-            // syncer_.addOperation(tempObject, "Petrel1");
         }
 
         private void AddListener(Listener listener)
@@ -48,6 +41,8 @@ namespace Observer.Controllers
             private string petrelId_ { get; set; }
             private List<IListener> listeners_ = new List<IListener>();
 
+            private ConcurrentDictionary<string, List<JObject>> listOfOperations_ = new ConcurrentDictionary<string, List<JObject>>();
+
             private ConcurrentDictionary<string, List<JObject>> listOfEverything_ = new ConcurrentDictionary<string, List<JObject>>();
 
             // Constructor
@@ -57,17 +52,40 @@ namespace Observer.Controllers
 
             public void AddElementsToList(string id, JObject operation)
             {
+                if (!listOfOperations_.ContainsKey(id))
+                    listOfOperations_[id] = new List<JObject>();
+
+                listOfOperations_[id].Add(operation);
+            }
+
+            public List<JObject> GetElementsFromList(string id)
+            {
+                if (!listOfOperations_.ContainsKey(id))
+                    listOfOperations_[id] = new List<JObject>();
+
+                return listOfOperations_[id];
+            }
+
+            public void AddElementsToEverythingList(string id, JObject operation)
+            {
                 if (!listOfEverything_.ContainsKey(id))
                     listOfEverything_[id] = new List<JObject>();
 
                 listOfEverything_[id].Add(operation);
             }
 
-            public List<JObject> GetElementsFromList(string id){
+            public List<JObject> GetElementsFromEverthingList(string id)
+            {
                 if (!listOfEverything_.ContainsKey(id))
                     listOfEverything_[id] = new List<JObject>();
 
                 return listOfEverything_[id];
+            }
+
+            public void removeListElements(string id)
+            {
+                // this is a bit scary, but for now, i'm deleting once sending the operations to the id
+                listOfOperations_[id].Clear();
             }
 
             public void addOperation(JObject operation, string id)
@@ -92,6 +110,7 @@ namespace Observer.Controllers
                 foreach (IListener listener in listeners_)
                 {
                     var id = listener.getListenerId();
+                    syncer_.AddElementsToEverythingList(id, operation_);
                     if (id == petrelId_)
                         continue;
 
@@ -178,13 +197,25 @@ namespace Observer.Controllers
         }
 
         [HttpGet("GetOperations/{id}")]
-        public JArray GetOperations(string id)
+        public IActionResult GetOperations(string id)
         {
             var listOfOperations = syncer_.GetElementsFromList(id);
 
             var jArrayObject = JArray.FromObject(listOfOperations);
 
-            return jArrayObject;
+            syncer_.removeListElements(id);
+
+            return new ObjectResult(jArrayObject);
+        }
+
+        [HttpGet("GetAllOperations/{id}")]
+        public IActionResult GetAllOperations(string id)
+        {
+            var listOfOperations = syncer_.GetElementsFromEverthingList(id);
+
+            var jArrayObject = JArray.FromObject(listOfOperations);
+
+            return new ObjectResult(jArrayObject);
         }
 
     }
