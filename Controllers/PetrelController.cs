@@ -123,7 +123,7 @@ namespace Observer.Controllers
         }
 
         /// <summary>
-        /// The 'Observer' interface
+        /// The 'Observer' pattern
         /// </summary>
         public interface IListener
         {
@@ -132,7 +132,7 @@ namespace Observer.Controllers
         }
 
         /// <summary>
-        /// The 'ConcreteObserver' class
+        /// The 'Listener' class
         /// </summary>
         public class Listener : IListener
         {
