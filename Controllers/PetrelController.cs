@@ -84,10 +84,16 @@ namespace Observer.Controllers
 
             public List<JObject> GetElementsFromListWithIndex(string id, int index)
             {
-                if (!listOfOperations_.ContainsKey(id))
-                    listOfOperations_[id] = new List<JObject>();
+                var listOfOps = new List<JObject>();
+                for (var i = index; i < indexedListOfOperations_.Count; i++)
+                {
+                    if (indexedListOfOperations_[i].listOfOperations_.ContainsKey(id))
+                        continue;
 
-                return listOfOperations_[id];
+                    listOfOps = listOfOps.Union(indexedListOfOperations_[i].listOfOperations_[id]).ToList();
+                }
+
+                return listOfOps;
             }
 
             public void AddElementsToEverythingList(string id, JObject operation)
@@ -102,6 +108,8 @@ namespace Observer.Controllers
 
                 listOfOperationsExperimental_.listOfOperations_[id].Add(operation);
                 indexedListOfOperations_[index] = listOfOperationsExperimental_;
+
+                index++;
             }
 
             public List<JObject> GetElementsFromEverthingList(string id)
@@ -242,6 +250,16 @@ namespace Observer.Controllers
         public IActionResult GetAllOperations(string id)
         {
             var listOfOperations = syncer_.GetElementsFromEverthingList(id);
+
+            var jArrayObject = JArray.FromObject(listOfOperations);
+
+            return new ObjectResult(jArrayObject);
+        }
+
+        [HttpGet("GetAllOperations/{id}/{index}")]
+        public IActionResult GetAllOperationsWithIndex(string id, int index)
+        {
+            var listOfOperations = syncer_.GetElementsFromListWithIndex(id, index);
 
             var jArrayObject = JArray.FromObject(listOfOperations);
 
