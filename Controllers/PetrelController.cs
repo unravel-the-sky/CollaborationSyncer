@@ -87,7 +87,8 @@ namespace Observer.Controllers
                 var listOfOps = new List<JObject>();
                 for (var i = index; i < indexedListOfOperations_.Count; i++)
                 {
-                    if (indexedListOfOperations_[i].listOfOperations_.ContainsKey(id))
+                    var keys = indexedListOfOperations_[i].listOfOperations_.Keys;
+                    if (keys.Contains(id))
                         continue;
 
                     listOfOps = listOfOps.Union(indexedListOfOperations_[i].listOfOperations_[id]).ToList();
@@ -130,6 +131,7 @@ namespace Observer.Controllers
             {
                 operation_ = operation;
                 petrelId_ = id;
+                AddElementsToEverythingList(id, operation);
                 Notify();
             }
 
@@ -148,7 +150,7 @@ namespace Observer.Controllers
                 foreach (IListener listener in listeners_)
                 {
                     var id = listener.getListenerId();
-                    syncer_.AddElementsToEverythingList(id, operation_);
+                    
                     if (id == petrelId_)
                         continue;
 
